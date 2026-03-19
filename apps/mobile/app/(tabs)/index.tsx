@@ -4,8 +4,10 @@ import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { healthApi } from '../../lib/api';
 import config from '../../lib/config';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function HomeScreen() {
+  const { colors } = useTheme();
   const [healthStatus, setHealthStatus] = useState<string>('Checking...');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,10 +31,6 @@ export default function HomeScreen() {
 
     setIsLoading(false);
   };
-import { useTheme } from '../../contexts/ThemeContext';
-
-export default function HomeScreen() {
-  const { colors } = useTheme();
 
   return (
     <ProtectedRoute>

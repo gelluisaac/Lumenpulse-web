@@ -11,10 +11,13 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { StatusBar } from 'react-native';
+import { useRouter, Link } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const LoginScreen = () => {
+  const { colors, resolvedMode } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -69,22 +72,31 @@ const LoginScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <StatusBar barStyle={resolvedMode === 'dark' ? 'light-content' : 'dark-content'} />
       <ScrollView contentContainerStyle={styles.scrollContainer} bounces={false}>
         <View style={styles.content}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to your account</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
+          <Text style={[styles.subtitle, { color: colors.primary }]}>Sign in to your account</Text>
 
           <View style={styles.form}>
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Email</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.surface,
+                    color: colors.text,
+                    borderColor: `${colors.primary}33`,
+                  },
+                ]}
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Enter your email"
+                placeholderTextColor={colors.textSecondary}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -93,12 +105,20 @@ const LoginScreen = () => {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Password</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.surface,
+                    color: colors.text,
+                    borderColor: `${colors.primary}33`,
+                  },
+                ]}
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Enter your password"
+                placeholderTextColor={colors.textSecondary}
                 secureTextEntry
                 autoCapitalize="none"
                 textContentType="password"
@@ -106,7 +126,11 @@ const LoginScreen = () => {
             </View>
 
             <TouchableOpacity
-              style={[styles.button, loading && styles.disabledButton]}
+              style={[
+                styles.button,
+                { backgroundColor: colors.primary, shadowColor: colors.primary },
+                loading && styles.disabledButton,
+              ]}
               onPress={handleLogin}
               disabled={loading}
             >
@@ -121,8 +145,17 @@ const LoginScreen = () => {
               style={styles.linkButton}
               onPress={() => router.push('/auth/register')}
             >
-              <Text style={styles.linkText}>
-                Don't have an account? <Text style={styles.linkHighlight}>Sign Up</Text>
+              <Text style={[styles.linkText, { color: colors.textSecondary }]}>
+                Don't have an account? <Text style={[styles.linkHighlight, { color: colors.primary }]}>Sign Up</Text>
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.linkButton, { marginTop: 20 }]}
+              onPress={() => router.replace('/(tabs)')}
+            >
+              <Text style={[styles.linkText, { color: colors.textSecondary, fontSize: 14 }]}>
+                (Debug) <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Bypass Login to Dashboard</Text>
               </Text>
             </TouchableOpacity>
           </View>

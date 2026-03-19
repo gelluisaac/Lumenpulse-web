@@ -25,11 +25,13 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
       "expo-router"
     ],
+    "scheme": "mobile",
     "extra": {
       "backendUrl": "http://localhost:3000",
       "environment": "development"
