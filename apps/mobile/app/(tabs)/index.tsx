@@ -8,10 +8,12 @@ import config from '../../lib/config';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useNotifications } from '../../contexts/NotificationsContext';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { unreadCount } = useNotifications();
   const [healthStatus, setHealthStatus] = useState<string>('Checking...');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -20,19 +22,13 @@ export default function HomeScreen() {
   }, []);
 
   const testApiConnection = async () => {
-    console.log('🔌 Testing API connection to:', config.api.baseUrl);
     setIsLoading(true);
-
     const response = await healthApi.check();
-
     if (response.success && response.data) {
-      console.log('✅ API Health Check Success:', response.data);
       setHealthStatus(`Connected to ${config.api.baseUrl}`);
     } else {
-      console.log('❌ API Health Check Failed:', response.error);
       setHealthStatus(`Failed: ${response.error?.message || 'Unknown error'}`);
     }
-
     setIsLoading(false);
   };
 
@@ -47,12 +43,21 @@ export default function HomeScreen() {
               Decentralized Crypto Insights
             </Text>
 
-            {/* Notifications bell */}
             <TouchableOpacity
-              style={{ position: 'absolute', right: 0, top: 0 }}
+              style={styles.bellButton}
               onPress={() => router.push('/notifications')}
+              accessibilityLabel={
+                unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
+              }
             >
               <Ionicons name="notifications-outline" size={28} color={colors.accent} />
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -68,7 +73,6 @@ export default function HomeScreen() {
               </Text>
             </View>
 
-            {/* API Connection Status */}
             <View style={[styles.glassCard, styles.statusCard]}>
               <Text style={styles.statusLabel}>API Status:</Text>
               {isLoading ? (
@@ -101,45 +105,34 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   content: {
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'space-between',
     paddingVertical: 60,
   },
-  header: {
-    marginTop: 40,
-  },
-  title: {
-    fontSize: 42,
-    fontWeight: '800',
-    letterSpacing: -1,
-  },
-  subtitle: {
-    fontSize: 18,
-    marginTop: 8,
-    fontWeight: '500',
-  },
-  comingSoon: {
-    flex: 1,
+  header: { marginTop: 40 },
+  title: { fontSize: 42, fontWeight: '800', letterSpacing: -1 },
+  subtitle: { fontSize: 18, marginTop: 8, fontWeight: '500' },
+  bellButton: { position: 'absolute', right: 0, top: 0, padding: 4 },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#ff4757',
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 4,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
   },
-  glassCard: {
-    padding: 24,
-    borderRadius: 24,
-    borderWidth: 1,
-    width: '100%',
-  },
-  cardText: {
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
-    opacity: 0.8,
-  },
+  badgeText: { color: '#ffffff', fontSize: 10, fontWeight: '700', lineHeight: 13 },
+  comingSoon: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  glassCard: { padding: 24, borderRadius: 24, borderWidth: 1, width: '100%' },
+  cardText: { fontSize: 16, textAlign: 'center', lineHeight: 24, opacity: 0.8 },
   button: {
     height: 56,
     borderRadius: 16,
@@ -150,29 +143,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  statusCard: {
-    marginTop: 16,
-  },
-  statusLabel: {
-    color: '#db74cf',
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  statusText: {
-    color: '#ffffff',
-    fontSize: 12,
-    opacity: 0.8,
-    marginBottom: 12,
-  },
-  loader: {
-    marginVertical: 12,
-  },
+  buttonText: { color: '#ffffff', fontSize: 18, fontWeight: '600' },
+  statusCard: { marginTop: 16 },
+  statusLabel: { color: '#db74cf', fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  statusText: { color: '#ffffff', fontSize: 12, opacity: 0.8, marginBottom: 12 },
+  loader: { marginVertical: 12 },
   retryButton: {
     backgroundColor: 'rgba(122, 133, 255, 0.2)',
     paddingVertical: 8,
@@ -182,9 +157,5 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(122, 133, 255, 0.3)',
     alignSelf: 'center',
   },
-  retryButtonText: {
-    color: '#7a85ff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
+  retryButtonText: { color: '#7a85ff', fontSize: 12, fontWeight: '600' },
 });
