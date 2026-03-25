@@ -1,4 +1,4 @@
-import { StarknetProvider } from "./providers";
+import { StellarProvider } from "./providers";
 import { StarsAnimation } from "@/components/stars-animation";
 import { PWAInstaller } from "@/components/pwa-installer";
 import "./globals.css";
@@ -161,11 +161,11 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${orbitron.variable} ${spaceMono.variable} ${chakraPetch.variable} ${poppins.variable} font-inter bg-background text-foreground`}
       >
-        <StarknetProvider>
+        <StellarProvider>
           <StarsAnimation />
           {children}
           <PWAInstaller />
-        </StarknetProvider>
+        </StellarProvider>
       </body>
     </html>
   );
