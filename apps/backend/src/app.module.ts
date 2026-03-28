@@ -13,6 +13,8 @@ import { MetricsModule } from './metrics/metrics.module';
 import { AppCacheModule } from './cache/cache.module';
 import { StellarModule } from './stellar/stellar.module';
 import { PriceModule } from './price/price.module';
+import { WebhookModule } from './webhook/webhook.module';
+import { NotificationModule } from './notification/notification.module';
 
 import databaseConfig from './database/database.config';
 import stellarConfig from './stellar/config/stellar.config';
@@ -40,6 +42,8 @@ import { TestController } from './test/test.controller';
     SentimentModule,
     StellarModule,
     PriceModule,
+    NotificationModule,
+    WebhookModule,
   ],
   controllers: [AppController, TestController, TestExceptionController],
   providers: [
