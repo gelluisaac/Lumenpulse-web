@@ -32,6 +32,7 @@ pub struct MilestoneApprovedEvent {
     #[topic]
     pub admin: Address,
     pub project_id: u64,
+    pub milestone_id: u32,
 }
 
 #[contractevent]
@@ -149,4 +150,25 @@ pub struct MilestoneApprovedByVoteEvent {
     #[topic]
     pub project_id: u64,
     pub milestone_id: u32,
+}
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MilestoneDisputedEvent {
+    #[topic]
+    pub project_id: u64,
+    pub milestone_id: u32,
+    pub challenger: Address,
+    pub reason: soroban_sdk::Symbol,
+}
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MilestoneDisputeResolvedEvent {
+    #[topic]
+    pub admin: Address,
+    #[topic]
+    pub project_id: u64,
+    pub milestone_id: u32,
+    pub upheld_completion: bool,
 }

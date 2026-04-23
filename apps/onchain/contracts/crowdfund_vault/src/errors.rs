@@ -25,4 +25,7 @@ pub enum CrowdfundError {
     AlreadyVoted = 19,
     InsufficientContributionToVote = 20,
     MilestoneAlreadyApproved = 21,
+    MilestoneAlreadyDisputed = 22,
+    MilestoneNotDisputed = 23,
+    MilestoneEscrowed = 24,
 }

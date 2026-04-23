@@ -8,6 +8,8 @@ pub enum DataKey {
     Project(u64),                     // -> ProjectData
     ProjectBalance(u64, Address),     // (project_id, token) -> i128
     MilestoneApproved(u64, u32),      // (project_id, milestone_id) -> bool
+    MilestoneDisputed(u64, u32),      // (project_id, milestone_id) -> bool
+    MilestoneDispute(u64, u32),       // (project_id, milestone_id) -> MilestoneDispute
     MilestoneVote(u64, u32, Address), // (project_id, milestone_id, voter) -> bool
     MilestoneVotesFor(u64, u32),      // (project_id, milestone_id) -> i128
     MilestoneVotesAgainst(u64, u32),  // (project_id, milestone_id) -> i128
@@ -46,4 +48,14 @@ pub struct ProjectData {
     pub total_deposited: i128,
     pub total_withdrawn: i128,
     pub is_active: bool,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MilestoneDispute {
+    pub project_id: u64,
+    pub milestone_id: u32,
+    pub challenger: Address,
+    pub opened_at: u64,
+    pub reason: Symbol,
 }
