@@ -1,4 +1,4 @@
-use soroban_sdk::{Address, Env, Symbol, symbol_short};
+use soroban_sdk::{symbol_short, Address, Env, Symbol};
 
 use crate::types::ProjectMetadata;
 
@@ -28,22 +28,16 @@ pub fn emit_vote_cast(
 }
 
 pub fn emit_project_verified(env: &Env, project_id: u64) {
-    env.events().publish(
-        (symbol_short!("verified"), project_id),
-        (),
-    );
+    env.events()
+        .publish((symbol_short!("verified"), project_id), ());
 }
 
 pub fn emit_project_rejected(env: &Env, project_id: u64) {
-    env.events().publish(
-        (symbol_short!("rejected"), project_id),
-        (),
-    );
+    env.events()
+        .publish((symbol_short!("rejected"), project_id), ());
 }
 
 pub fn emit_proposal_expired(env: &Env, project_id: u64) {
-    env.events().publish(
-        (symbol_short!("expired"), project_id),
-        (),
-    );
+    env.events()
+        .publish((symbol_short!("expired"), project_id), ());
 }

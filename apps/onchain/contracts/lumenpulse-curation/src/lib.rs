@@ -14,9 +14,7 @@ mod types;
 pub use errors::CurationError;
 pub use types::{ProjectMetadata, ProjectStatus, ProposalState, VoteRecord};
 
-use soroban_sdk::{
-    contract, contractimpl, contracttype, token, Address, Env, String, Vec,
-};
+use soroban_sdk::{contract, contractimpl, contracttype, token, Address, Env, String, Vec};
 
 use errors::*;
 use events::*;
@@ -137,8 +135,7 @@ impl CommunityCurationContract {
     ) -> Result<(), CurationError> {
         voter.require_auth();
 
-        let mut proposal = get_proposal(&env, project_id)
-            .ok_or(CurationError::ProjectNotFound)?;
+        let mut proposal = get_proposal(&env, project_id).ok_or(CurationError::ProjectNotFound)?;
 
         // Only vote on pending proposals within the window
         if proposal.status != ProjectStatus::Pending {
@@ -161,8 +158,7 @@ impl CommunityCurationContract {
 
         // Snapshot total voting power on first vote (gas-efficient approximation)
         if proposal.total_voting_power_snapshot == 0 {
-            proposal.total_voting_power_snapshot =
-                Self::get_total_reputation(&env);
+            proposal.total_voting_power_snapshot = Self::get_total_reputation(&env);
         }
 
         // Record vote
@@ -209,12 +205,8 @@ impl CommunityCurationContract {
 
     /// Finalise a proposal whose voting window has expired without hitting a
     /// threshold automatically. Anyone can call this to clean up state.
-    pub fn finalize_proposal(
-        env: Env,
-        project_id: u64,
-    ) -> Result<ProjectStatus, CurationError> {
-        let mut proposal = get_proposal(&env, project_id)
-            .ok_or(CurationError::ProjectNotFound)?;
+    pub fn finalize_proposal(env: Env, project_id: u64) -> Result<ProjectStatus, CurationError> {
+        let mut proposal = get_proposal(&env, project_id).ok_or(CurationError::ProjectNotFound)?;
 
         if proposal.status != ProjectStatus::Pending {
             return Ok(proposal.status.clone());
@@ -235,14 +227,10 @@ impl CommunityCurationContract {
     // ── Admin Helpers ────────────────────────────────────────────────────────
 
     /// Admin can forcibly reject a project (e.g., legal/compliance reasons).
-    pub fn admin_reject(
-        env: Env,
-        project_id: u64,
-    ) -> Result<(), CurationError> {
+    pub fn admin_reject(env: Env, project_id: u64) -> Result<(), CurationError> {
         get_admin(&env).require_auth();
 
-        let mut proposal = get_proposal(&env, project_id)
-            .ok_or(CurationError::ProjectNotFound)?;
+        let mut proposal = get_proposal(&env, project_id).ok_or(CurationError::ProjectNotFound)?;
 
         if proposal.status != ProjectStatus::Pending {
             return Err(CurationError::VotingClosed);

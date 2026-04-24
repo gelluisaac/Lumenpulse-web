@@ -36,7 +36,10 @@ pub fn set_deposit_token(env: &Env, token: &Address) {
 }
 
 pub fn get_deposit_token(env: &Env) -> Address {
-    env.storage().instance().get(&DataKey::DepositToken).unwrap()
+    env.storage()
+        .instance()
+        .get(&DataKey::DepositToken)
+        .unwrap()
 }
 
 // ── Contributor Registry ──────────────────────────────────────────────────────
@@ -97,22 +100,13 @@ pub fn record_vote(env: &Env, project_id: u64, voter: &Address) {
         .set(&DataKey::VotedFlag(project_id, voter.clone()), &true);
 }
 
-pub fn save_vote_record(
-    env: &Env,
-    project_id: u64,
-    voter: &Address,
-    record: &VoteRecord,
-) {
+pub fn save_vote_record(env: &Env, project_id: u64, voter: &Address, record: &VoteRecord) {
     env.storage()
         .persistent()
         .set(&DataKey::VoteRecord(project_id, voter.clone()), record);
 }
 
-pub fn get_vote_record(
-    env: &Env,
-    project_id: u64,
-    voter: &Address,
-) -> Option<VoteRecord> {
+pub fn get_vote_record(env: &Env, project_id: u64, voter: &Address) -> Option<VoteRecord> {
     env.storage()
         .persistent()
         .get(&DataKey::VoteRecord(project_id, voter.clone()))
