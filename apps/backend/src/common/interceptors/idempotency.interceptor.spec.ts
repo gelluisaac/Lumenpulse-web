@@ -3,11 +3,10 @@ import { IdempotencyInterceptor } from './idempotency.interceptor';
 import { Reflector } from '@nestjs/core';
 import { CacheService } from '../../cache/cache.service';
 import { ExecutionContext, CallHandler } from '@nestjs/common';
-import { of, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 
 describe('IdempotencyInterceptor', () => {
   let interceptor: IdempotencyInterceptor;
-  let cacheService: CacheService;
 
   const mockCacheService = {
     get: jest.fn(),
@@ -29,7 +28,6 @@ describe('IdempotencyInterceptor', () => {
     }).compile();
 
     interceptor = module.get<IdempotencyInterceptor>(IdempotencyInterceptor);
-    cacheService = module.get<CacheService>(CacheService);
   });
 
   it('should return cached result if key and body hash match', async () => {
@@ -37,13 +35,14 @@ describe('IdempotencyInterceptor', () => {
     const context = createMockContext('POST', { 'idempotency-key': 'test-key' }, body);
     const next: CallHandler = { handle: jest.fn() };
     
-    // @ts-ignore
+    // @ts-expect-error - accessing private method for test
     const bodyHash = interceptor.calculateHash(body);
     const cachedResponse = { statusCode: 201, body: { success: true }, bodyHash };
 
     mockCacheService.get.mockResolvedValue(cachedResponse);
 
-    const result = await (await interceptor.intercept(context, next)).toPromise();
+    const obs = await interceptor.intercept(context, next);
+    const result = await obs.toPromise();
     expect(result).toEqual(cachedResponse.body);
   });
 
@@ -70,14 +69,14 @@ describe('IdempotencyInterceptor', () => {
     try {
       const obs = await interceptor.intercept(context, next);
       await obs.toPromise();
-    } catch (e) {
+    } catch {
       // Expected
     }
 
     expect(mockCacheService.del).toHaveBeenCalled();
   });
 
-  function createMockContext(method: string, headers: any, body: any): ExecutionContext {
+  function createMockContext(method: string, headers: Record<string, string>, body: unknown): ExecutionContext {
     return {
       switchToHttp: () => ({
         getRequest: () => ({
@@ -93,6 +92,6 @@ describe('IdempotencyInterceptor', () => {
       }),
       getHandler: () => ({}),
       getClass: () => ({}),
-    } as any;
+    } as unknown as ExecutionContext;
   }
 });

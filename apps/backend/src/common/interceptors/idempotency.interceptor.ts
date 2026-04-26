@@ -8,6 +8,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Request, Response } from 'express';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import * as crypto from 'crypto';
@@ -19,7 +20,7 @@ import {
 
 interface IdempotencyResult {
   statusCode: number;
-  body: any;
+  body: unknown;
   bodyHash: string;
 }
 
@@ -35,12 +36,14 @@ export class IdempotencyInterceptor implements NestInterceptor {
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Promise<Observable<any>> {
-    const request = context.switchToHttp().getRequest();
-    const options = this.reflector.getAllAndOverride<IdempotentOptions>(
-      IDEMPOTENT_OPTIONS_KEY,
-      [context.getHandler(), context.getClass()],
-    ) || {};
+  ): Promise<Observable<unknown>> {
+    const httpContext = context.switchToHttp();
+    const request = httpContext.getRequest<Request>();
+    const options =
+      this.reflector.getAllAndOverride<IdempotentOptions>(
+        IDEMPOTENT_OPTIONS_KEY,
+        [context.getHandler(), context.getClass()],
+      ) || {};
 
     const methods = options.methods || ['POST', 'PUT', 'DELETE', 'PATCH'];
     if (!methods.includes(request.method)) {
@@ -50,14 +53,14 @@ export class IdempotencyInterceptor implements NestInterceptor {
     const headerName = options.header || 'idempotency-key';
     const idempotencyKey = request.headers[headerName.toLowerCase()];
 
-    if (!idempotencyKey) {
+    if (!idempotencyKey || typeof idempotencyKey !== 'string') {
       return next.handle();
     }
 
     // Hash the body to ensure the key is only valid for the same payload
     const bodyHash = this.calculateHash(request.body);
     const cacheKey = `idempotency:${request.path}:${idempotencyKey}`;
-    
+
     const cachedResult = await this.cacheService.get<IdempotencyResult | string>(
       cacheKey,
     );
@@ -71,7 +74,7 @@ export class IdempotencyInterceptor implements NestInterceptor {
       }
 
       const result = cachedResult as IdempotencyResult;
-      
+
       // Verify that the body hash matches
       if (result.bodyHash !== bodyHash) {
         throw new HttpException(
@@ -81,7 +84,7 @@ export class IdempotencyInterceptor implements NestInterceptor {
       }
 
       this.logger.debug(`Returning cached result for key: ${idempotencyKey}`);
-      const response = context.switchToHttp().getResponse();
+      const response = httpContext.getResponse<Response>();
       response.status(result.statusCode);
       return of(result.body);
     }
@@ -91,25 +94,33 @@ export class IdempotencyInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap({
-        next: async (body) => {
-          const response = context.switchToHttp().getResponse();
+        next: (body: unknown) => {
+          const response = httpContext.getResponse<Response>();
           const result: IdempotencyResult = {
             statusCode: response.statusCode,
             body,
             bodyHash,
           };
           const ttl = options.ttl || 24 * 60 * 60 * 1000; // 24 hours default
-          await this.cacheService.set(cacheKey, result, ttl);
+          this.cacheService
+            .set(cacheKey, result, ttl)
+            .catch((err: Error) =>
+              this.logger.error(`Failed to cache idempotency result: ${err.message}`),
+            );
         },
-        error: async () => {
+        error: () => {
           // Remove the lock on error so the client can retry
-          await this.cacheService.del(cacheKey);
-        }
-      })
+          this.cacheService
+            .del(cacheKey)
+            .catch((err: Error) =>
+              this.logger.error(`Failed to release idempotency lock: ${err.message}`),
+            );
+        },
+      }),
     );
   }
 
-  private calculateHash(body: any): string {
+  private calculateHash(body: unknown): string {
     const data = body ? JSON.stringify(body) : '';
     return crypto.createHash('sha256').update(data).digest('hex');
   }
